@@ -1,0 +1,5 @@
+CREATE TABLE IF NOT EXISTS sqlnb_cell (
+	id TEXT NOT NULL PRIMARY KEY,
+	seq FLOAT,
+	data TEXT
+);

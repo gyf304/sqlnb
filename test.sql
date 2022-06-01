@@ -1,0 +1,1 @@
+SELECT COALESCE((SELECT MAX(seq) FROM sqlnb_cell), 0) + 1
