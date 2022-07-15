@@ -1,5 +1,5 @@
 import * as React from "react";
-import { SQLExecutor } from "../sql/types";
+import { SQLExecutor } from "@sqlbook/notebook";
 
 const context = React.createContext<SQLExecutor | undefined>(undefined);
 export const SQLExecutorProvider = context.Provider;

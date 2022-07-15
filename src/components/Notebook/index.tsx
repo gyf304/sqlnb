@@ -1,30 +1,25 @@
-import { Button, Card } from '@mui/material';
-import { Box } from '@mui/system';
-import React from 'react';
-import './App.css';
-import { CellDisplay } from './Cell';
-import { NotebookProvider } from './hooks/notebook';
-import { useSQLExecutor } from './hooks/sqlExecutor';
-import { useToast } from './hooks/toast';
-import { Notebook } from './notebook/types';
+import { Button, Card } from "@mui/material";
+import { Box } from "@mui/system";
+import React from "react";
+import { CellDisplay } from "../Cell";
+import { NotebookProvider } from "../../hooks/notebook";
+import { useSQLExecutor } from "../../hooks/sqlExecutor";
+import { useToast } from "../../hooks/toast";
+import { Notebook } from "@sqlbook/notebook";
 
 interface Props {
 	notebook: Notebook;
+	readonly?: boolean;
 }
 
 function downloadBuffer(data: ArrayBuffer, fileName: string, mimeType: string) {
-	const a = document.createElement('a')
+	const a = document.createElement("a");
 	a.href = URL.createObjectURL(new Blob(
 		[data],
 		{ type: mimeType }
-	))
-	a.download = fileName
-	a.click()
-}
-
-function bufferFromURL(url: string) {
-	return fetch(url)
-		.then(response => response.arrayBuffer())
+	));
+	a.download = fileName;
+	a.click();
 }
 
 function getUserBuffer(): Promise<ArrayBuffer> {
@@ -66,7 +61,6 @@ export function NotebookDisplay({ notebook }: Props) {
 			setCellIds(cellIds);
 		})();
 		const listener = async (id?: string) => {
-			console.log("listener", id);
 			if (id === undefined) {
 				const cellIds = await notebook.getCellIds();
 				setCellIds(cellIds);
@@ -82,18 +76,15 @@ export function NotebookDisplay({ notebook }: Props) {
 				sx={{
 					display: "flex",
 					flexDirection: "column",
-					p: 2,
-					gap: 2,
+					alignItems: "center",
+					justifyContent: "center",
+					width: 1200,
+					maxWidth: "100%",
+					p: 1,
+					gap: 1,
 				}}
 			>
-				<Box
-					sx={{
-						display: "flex",
-						flexDirection: "row",
-						alignItems: "center",
-						justifyContent: "center",
-					}}
-				>
+				<Box>
 					{
 						sqlExecutor.load === undefined ? undefined :
 							<>
@@ -116,17 +107,17 @@ export function NotebookDisplay({ notebook }: Props) {
 								<Button
 									onClick={async () => {
 										try {
-											const data = await bufferFromURL("https://raw.githubusercontent.com/jpwhite3/northwind-SQLite3/master/Northwind_small.sqlite");
-											console.log("DATA", data);
-											await sqlExecutor.load!(data);
-											notebook.reload();
+											const url = "https://raw.githubusercontent.com/jpwhite3/northwind-SQLite3/master/Northwind_small.sqlite";
+											await notebook.load(await fetch(url).then(response => response.blob()));
 											notebook.addCell({
 												type: "sql",
 												sql: "SELECT * FROM Customer",
+												readonly: false,
 											});
 											notebook.addCell({
 												type: "sql",
 												sql: "SELECT * FROM Product",
+												readonly: false,
 											});
 										} catch (e) {
 											if (e instanceof Error) {
@@ -158,9 +149,11 @@ export function NotebookDisplay({ notebook }: Props) {
 				{
 					cellIds.map((cellId, i) => (
 						<div key={cellId} style={{ width: "100%" }}>
-							<Card elevation={16}>
-								<CellDisplay id={cellId} seq={i + 1} />
-							</Card>
+							<CellDisplay
+								id={cellId}
+								index={i}
+								onDelete={() => notebook.deleteCell(cellId)}
+							/>
 						</div>
 					))
 				}
@@ -174,7 +167,7 @@ export function NotebookDisplay({ notebook }: Props) {
 				>
 					<Button
 						onClick={() => {
-							notebook.addCell({ type: "sql", sql: "" });
+							notebook.addCell({ type: "sql", sql: "", readonly: false });
 						}}
 					>
 						Add SQL Cell

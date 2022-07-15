@@ -1,6 +1,6 @@
 export interface SQLColumn {
 	name: string;
-	type: "string" | "number" | "boolean" | "date" | "time" | "datetime" | "unknown";
+	type: string;
 }
 
 export interface SQLResult {
@@ -11,7 +11,7 @@ export interface SQLResult {
 }
 
 export interface SQLExecutor {
-	execute(sql: string, ...args: any[]): Promise<SQLResult[]>;
+	execute(sql: string, args?: any[]): Promise<SQLResult[]>;
 	save?: () => Promise<ArrayBuffer>;
 	load?: (buffer: ArrayBuffer) => Promise<void>;
 }

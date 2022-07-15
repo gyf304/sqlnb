@@ -1,6 +1,5 @@
-import { SQLite, SQLiteDB, SQLiteDatatypes } from "@yifangu/sqlite";
-
-import type { SQLResult, SQLColumn } from "../sql/types";
+import { SQLite, SQLiteDB } from "@yifangu/sqlite";
+import type { SQLResult, SQLColumn } from "@sqlbook/notebook";
 
 interface BaseRequest {
 	id: number;
@@ -63,8 +62,6 @@ function reply(response: Response): void {
 let db: SQLiteDB | undefined;
 let sqlite: SQLite | undefined;
 
-console.log("worker started");
-
 async function handle(req: Request): Promise<Response> {
 	const { id, kind } = req;
 	switch (kind) {
@@ -82,34 +79,19 @@ async function handle(req: Request): Promise<Response> {
 			}
 			const results: SQLResult[] = [];
 			db.prepare(sql, (stmt) => {
-				stmt.bind(...(req.args || []));
+				stmt.bindValues(req.args || []);
 				const columns: SQLColumn[] = [];
 				const columnCount = stmt.columnCount();
 				let rowCount = 0;
 				let rows: (string | number | boolean | null)[][] = [];
 				for (let i = 0; i < columnCount; i++) {
-					columns.push({name: "unknown", type: "string"});
+					const name = stmt.columnName(i);
+					const decltype = stmt.columnDecltype(i);
+					columns.push({ name, type: decltype ?? "" });
 				}
 				while (stmt.step()) {
 					const row: (string | number | boolean | null)[] = [];
 					for (let i = 0; i < columnCount; i++) {
-						const name = stmt.columnName(i);
-						const type = stmt.columnType(i);
-						switch (type) {
-							case SQLiteDatatypes.SQLITE_INTEGER:
-							case SQLiteDatatypes.SQLITE_FLOAT:
-								columns[i].type = "number";
-								break;
-							case SQLiteDatatypes.SQLITE_TEXT:
-								columns[i].type = "string";
-								break;
-							case SQLiteDatatypes.SQLITE_BLOB:
-								columns[i].type = "unknown";
-								break;
-							case SQLiteDatatypes.SQLITE_NULL:
-								break;
-						}
-						columns[i].name = name;
 						let value = stmt.columnValue(i);
 						if (typeof value === "bigint") {
 							value = Number(value).valueOf();
@@ -145,10 +127,7 @@ async function handle(req: Request): Promise<Response> {
 			if (sqlite === undefined) {
 				throw new Error("sqlite was not initialized");
 			}
-			db?.close();
-			db = sqlite.open(":memory:");
-			const { data } = req;
-			db.load(data);
+			db = sqlite.load(req.data);
 			return { id, kind };
 		}
 	}

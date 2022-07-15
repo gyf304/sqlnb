@@ -1,0 +1,25 @@
+{
+	"name": "@sqlbook/notebook",
+	"packageManager": "yarn@3.2.1",
+	"main": "./dist/cjs/index.js",
+	"module": "./dist/esm/index.js",
+	"types": "./dist/cjs/index.d.ts",
+	"exports": {
+		".": {
+			"require": "./dist/cjs/index.js",
+			"import": "./dist/esm/index.js",
+			"types": "./dist/cjs/index.d.ts"
+		}
+	},
+	"dependencies": {
+		"@yifangu/sqlite": "^1.0.0-alpha.13"
+	},
+	"scripts": {
+		"build": "tsc -p ./tsconfig.json && tsc -p ./tsconfig.esm.json",
+		"tsr": "node --enable-source-maps --loader ts-node/esm",
+		"prepack": "yarn build"
+	},
+	"devDependencies": {
+		"typescript": "^4.7.3"
+	}
+}

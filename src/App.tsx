@@ -1,15 +1,14 @@
 import React from "react";
-import "./App.css";
 
-import { CellDisplay } from "./Cell";
+import { CellDisplay } from "./components/Cell";
 
 import { ThemeProvider, createTheme } from "@mui/material/styles";
-import { Box, Button, Card } from "@mui/material";
+import { Box, Button, Card, Paper } from "@mui/material";
 import { SQLExecutorProvider } from "./hooks/sqlExecutor";
-import { SQLiteWorkerExecutor } from "./sql/sqliteWorkerExecutor";
-import { SQLNotebook } from "./notebook/sqlNotebook";
+import { SQLiteWorkerExecutor } from "./executors/sqliteWorkerExecutor";
+import { SQLiteNotebook } from "@sqlbook/notebook";
 import { ToastProvider } from "./hooks/toast";
-import { NotebookDisplay } from "./Notebook";
+import { NotebookDisplay } from "./components/Notebook";
 
 const darkTheme = createTheme({
 	palette: {
@@ -17,21 +16,47 @@ const darkTheme = createTheme({
 	},
 });
 
-const executor = new SQLiteWorkerExecutor();
-const notebook = new SQLNotebook(executor);
+const lightTheme = createTheme({
+	palette: {
+		mode: "light",
+	},
+});
 
-notebook.addCell({ type: "sql", sql: "SELECT SQLITE_VERSION()" });
+const executor = new SQLiteWorkerExecutor();
+const notebook = new SQLiteNotebook(executor);
+
+notebook.addCell({ type: "markdown", markdown: "## Hello, world!", readonly: false });
+notebook.addCell({ type: "sql", sql: "SELECT SQLITE_VERSION()", readonly: false });
 
 function App() {
+	const [theme, setTheme] = React.useState(darkTheme);
+	const darkThemeMq = window.matchMedia("(prefers-color-scheme: dark)");
+	darkThemeMq.onchange = () => {
+		if (darkThemeMq.matches) {
+			setTheme(darkTheme);
+		}
+		else {
+			setTheme(lightTheme);
+		}
+	};
+
 	return (
-		<ThemeProvider theme={darkTheme}>
-			<div className="App">
+		<ThemeProvider theme={theme}>
+			<Box sx={{
+				display: "flex",
+				flexDirection: "column",
+				alignItems: "center",
+				height: "100%",
+				width: "100%",
+				backgroundColor: theme.palette.background.paper,
+				overflow: "scroll",
+			}}>
 				<ToastProvider>
 					<SQLExecutorProvider value={executor}>
 						<NotebookDisplay notebook={notebook} />
 					</SQLExecutorProvider>
 				</ToastProvider>
-			</div>
+			</Box>
 		</ThemeProvider>
 	);
 }

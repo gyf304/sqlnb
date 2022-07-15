@@ -1,7 +1,7 @@
 import { Mutex } from "async-mutex";
 
 import type { Request as WorkerRequest, Response as WorkerResponse } from "../workers/sqlite";
-import { SQLExecutor, SQLResult } from "./types";
+import { SQLExecutor, SQLResult } from "@sqlbook/notebook";
 
 import wasm from "@yifangu/sqlite/dist/wasm/sqlite3.wasm";
 

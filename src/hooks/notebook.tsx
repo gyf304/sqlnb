@@ -1,5 +1,5 @@
 import * as React from "react";
-import { Notebook } from "../notebook/types";
+import { Notebook } from "@sqlbook/notebook";
 
 const context = React.createContext<Notebook | undefined>(undefined);
 export const NotebookProvider = context.Provider;
